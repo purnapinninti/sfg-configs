@@ -1,0 +1,10 @@
+ <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<BusinessProcess xmlns="http://www.sterlingcommerce.com/businessprocess" name="sample">
+    <Sequence>
+        <NoOperation name="Start"/>
+        <NoOperation name="End"/>
+    </Sequence>
+</BusinessProcess>
+EOF
+

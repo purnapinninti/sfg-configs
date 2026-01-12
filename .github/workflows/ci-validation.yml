@@ -1,0 +1,27 @@
+name: CI – Validate BPML
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  validate-bpml:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install XML tools
+        run: sudo apt-get install -y libxml2-utils
+
+      - name: Validate BPML files
+        run: |
+          echo "Validating BPML files..."
+          for f in business-processes/*.bpml; do
+            echo "Checking $f"
+            xmllint --noout "$f"
+          done
+
