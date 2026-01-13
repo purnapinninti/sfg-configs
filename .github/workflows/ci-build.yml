@@ -68,4 +68,17 @@ jobs:
           aws s3 cp sfg-package-${{ steps.version.outputs.version }}.zip \
             s3://my-sfg-artifacts/dev/sfg-package-${{ steps.version.outputs.version }}.zip
 
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ap-south-1
+          role-to-assume: arn:aws:iam::<ACCOUNT-ID>:role/github-sfg-ci-role
+          role-session-name: sfg-ci-session
+
+      - name: Upload to S3
+        run: |
+          aws s3 cp sfg-package-${{ steps.version.outputs.version }}.zip \
+            s3://sfg-artifacts-demo/dev/sfg-package-${{ steps.version.outputs.version }}.zip
+
+
 
