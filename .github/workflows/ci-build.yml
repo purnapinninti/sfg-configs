@@ -72,8 +72,8 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: ap-south-1
-          role-to-assume: arn:aws:iam::043809027222:role/sfg
-          role-session-name: sfg
+          role-to-assume: arn:aws:iam::043809027222:role/token.actions.githubusercontent.com
+          role-session-name:token.actions.githubusercontent.com
 
       - name: Upload to S3
         run: |
