@@ -80,5 +80,21 @@ jobs:
           aws s3 cp sfg-package-${{ steps.version.outputs.version }}.zip \
             s3://sfg-artifacts-demo/dev/sfg-package-${{ steps.version.outputs.version }}.zip
 
+      - name: List files in workspace
+        run: |
+          echo "Listing workspace contents..."
+          ls -R .
+
+      - name: Check ZIP exists
+        run: |
+          FILE="sfg-package-${{ steps.version.outputs.version }}.zip"
+          if [ -f "$FILE" ]; then
+            echo "FOUND ZIP: $FILE"
+          else
+            echo "ERROR: ZIP not found!"
+            exit 1
+          fi
+
+
 
 
