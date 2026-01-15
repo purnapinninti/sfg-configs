@@ -8,14 +8,14 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: linux-latest
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
 
       - name: Install XML Tools
-        run: sudo apt-get install -y libxml2-utils
+        run: sudo yum install -y libxml2-utils
 
       - name: Validate BPML Files
         run: |
@@ -72,7 +72,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: ap-south-1
-          role-to-assume: arn:aws:iam::<ACCOUNT-ID>:role/github-sfg-ci-role
+          role-to-assume: arn:aws:iam::<043809027222>:role/github-sfg-ci-role
           role-session-name: sfg-ci-session
 
       - name: Upload to S3
