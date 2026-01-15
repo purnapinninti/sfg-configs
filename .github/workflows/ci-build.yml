@@ -66,7 +66,7 @@ jobs:
       - name: Upload artifact to S3
         run: |
           aws s3 cp sfg-package-${{ steps.version.outputs.version }}.zip \
-            s3://my-sfg-artifacts/dev/sfg-package-${{ steps.version.outputs.version }}.zip
+            s3://sfg-artifacts-demo/dev/sfg-package-${{ steps.version.outputs.version }}.zip
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
