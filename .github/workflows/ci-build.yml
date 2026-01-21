@@ -1,99 +1,49 @@
-name: CI – Validate & Package SFG Configs
+name: CI – Validate and Upload to S3
 
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    branches:
+      - feature/**
+      - main
 
 jobs:
   build:
-    runs-on: linux-latest
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: read
 
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Install XML Tools
-        run: sudo yum install -y libxml2-utils
+    - name: Validate BPML XML
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libxml2-utils
+        xmllint --noout business-processes/*.bpml
 
-      - name: Validate BPML Files
-        run: |
-          echo "Validating BPML..."
-          for f in business-processes/*.bpml; do
-            echo "Checking $f"
-            xmllint --noout "$f"
-          done
+    - name: Create ZIP of config
+      run: |
+        zip -r artifact.zip business-processes
 
-      - name: Determine Version
-        id: version
-        run: |
-          # Auto-bump version using commit count
-          VERSION="1.0.$(git rev-list --count HEAD)"
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Calculated VERSION = $VERSION"
+    - name: Generate version tag
+      id: version
+      run: |
+        VERSION="v$(date +'%Y.%m.%d.%H%M%S')"
+        echo "VERSION=$VERSION" >> $GITHUB_ENV
 
-      - name: Create Build Package
-        run: |
-          mkdir build
-          cp -r business-processes build/
-          cp -r routing build/
-          cp -r maps build/
-          cp -r partners build/
-          zip -r sfg-package-${{ steps.version.outputs.version }}.zip build
+    - name: Configure AWS via OIDC
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: arn:aws:iam::<YOUR_AWS_ACCOUNT>:role/GitHubOIDCDeployRole
+        aws-region: ap-south-1
 
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: sfg-package-${{ steps.version.outputs.version }}
-          path: sfg-package-${{ steps.version.outputs.version }}.zip
+    - name: Upload to S3
+      run: |
+        aws s3 cp artifact.zip s3://$S3_BUCKET/bpml-${{ env.VERSION }}.zip
 
-      - name: Tag Repo
-        if: github.ref == 'refs/heads/main'
-        run: |
-          git config user.name "github-actions"
-          git config user.email "actions@github.com"
-          git tag v${{ steps.version.outputs.version }}
-          git push origin v${{ steps.version.outputs.version }}
-
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-region: ap-south-1
-          role-to-assume: arn:aws:iam::043809027222:role/sfg
-          role-session-name: sfg
-
-      - name: Upload artifact to S3
-        run: |
-          aws s3 cp sfg-package-${{ steps.version.outputs.version }}.zip \
-            s3://Buckets/sfg-artifacts-demo/dev/sfg-package-${{ steps.version.outputs.version }}.zip
-
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-region: ap-south-1
-          role-to-assume: arn:aws:iam::043809027222:role/token.actions.githubusercontent.com
-          role-session-name:token.actions.githubusercontent.com
-
-      - name: Upload to S3
-        run: |
-          aws s3 cp sfg-package-${{ steps.version.outputs.version }}.zip \
-            s3://Buckets/sfg-artifacts-demo/dev/sfg-package-${{ steps.version.outputs.version }}.zip
-
-      - name: List files in workspace
-        run: |
-          echo "Listing workspace contents..."
-          ls -R .
-
-      - name: Check ZIP exists
-        run: |
-          FILE="sfg-package-${{ steps.version.outputs.version }}.zip"
-          if [ -f "$FILE" ]; then
-            echo "FOUND ZIP: $FILE"
-          else
-            echo "ERROR: ZIP not found!"
-            exit 1
-          fi
 
 
 
